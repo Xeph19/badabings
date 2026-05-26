@@ -82,7 +82,8 @@ input, select, textarea { font-family: inherit; }
   display: flex;
   flex-direction: column;
   padding: 16px 0;
-  overflow-y: auto;
+  overflow: hidden;
+  height: 100%;
 }
 
 .sidebar-brand {
@@ -102,7 +103,11 @@ input, select, textarea { font-family: inherit; }
   margin-top: 2px;
 }
 
-.sidebar-nav { flex: 1; padding: 4px 0; }
+.sidebar-nav {
+  flex: 1;
+  padding: 4px 0;
+  overflow-y: auto;
+}
 
 .nav-item {
   display: flex;
