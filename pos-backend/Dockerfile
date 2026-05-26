@@ -31,7 +31,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 # Set permissions
-RUN chown -R www-data:www-data /var/web/storage /var/web/bootstrap/cache
+RUN chown -R www-data:www-data /var/web/storage /var/web/bootstrap/cache /var/web/database
 
 # Configure Apache Document Root to point to public
 ENV APACHE_DOCUMENT_ROOT /var/web/public
