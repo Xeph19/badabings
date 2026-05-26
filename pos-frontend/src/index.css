@@ -69,10 +69,14 @@ input, select, textarea { font-family: inherit; }
 /* ── App Shell ─────────────────────────────────────────── */
 .app-shell {
   display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr var(--ticket-width);
+  grid-template-columns: var(--sidebar-width) 1fr;
   grid-template-rows: 100vh;
   height: 100vh;
   overflow: hidden;
+}
+
+.app-shell.has-ticket {
+  grid-template-columns: var(--sidebar-width) 1fr var(--ticket-width);
 }
 
 /* ── Sidebar ───────────────────────────────────────────── */
@@ -90,6 +94,7 @@ input, select, textarea { font-family: inherit; }
   padding: 8px 20px 20px;
   border-bottom: 1px solid var(--border);
   margin-bottom: 8px;
+  flex-shrink: 0;
 }
 
 .sidebar-brand .store-name {
@@ -107,6 +112,7 @@ input, select, textarea { font-family: inherit; }
   flex: 1;
   padding: 4px 0;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .nav-item {
@@ -141,10 +147,15 @@ input, select, textarea { font-family: inherit; }
 }
 .nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
 
+#nav-logout {
+  flex-shrink: 0;
+}
+
 .sidebar-version {
   padding: 12px 20px;
   font-size: 11px;
   color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 /* ── Center Workspace ──────────────────────────────────── */
