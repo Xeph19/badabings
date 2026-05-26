@@ -126,12 +126,12 @@ function TimeNav({ view, date, month, year, onNavigate, onExport }) {
           Current
         </button>
         <button
-          id="export-csv-btn"
+          id="save-chart-btn"
           className="btn btn-secondary"
           style={{ fontSize: 11, padding: '6px 12px', background: 'rgba(76,175,80,0.08)', color: 'var(--accent)', borderColor: 'var(--border-accent)', fontWeight: 600 }}
           onClick={onExport}
         >
-          📥 Export Excel
+          📸 Save Chart
         </button>
       </div>
     </div>
@@ -362,55 +362,51 @@ export default function BackOfficePage() {
   const handleStatusFilter = (s) => { setStatusFilter(s); setPage(1); };
 
   const handleExport = () => {
-    if (!data) return;
+    const container = document.querySelector('.chart-card');
+    const svgElement = container ? container.querySelector('svg') : null;
+    if (!svgElement) {
+      toast.error('Chart element not found');
+      return;
+    }
 
-    let csvContent = "\uFEFF"; // Add BOM for Excel UTF-8 display compatibility
+    try {
+      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const DOMURL = window.URL || window.webkitURL || window;
+      const url = DOMURL.createObjectURL(svgBlob);
 
-    // 1. Title / Metadata
-    csvContent += `BADABINGS POS - ANALYTICS EXPORT\n`;
-    csvContent += `Exported At,${new Date().toLocaleString('en-PH')}\n`;
-    csvContent += `Period View,${view === 'day' ? `Day (${date})` : `Month (${year}-${String(month).padStart(2, '0')})`}\n\n`;
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = 2;
+        const width = svgElement.clientWidth || 800;
+        const height = svgElement.clientHeight || 220;
+        
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
 
-    // 2. KPIs Section
-    csvContent += `KEY PERFORMANCE INDICATORS (KPIs)\n`;
-    csvContent += `Metric,Value,Note\n`;
-    csvContent += `Gross Sales,₱${(kpis?.gross_sales || 0).toFixed(2)},${kpis?.order_count || 0} orders\n`;
-    csvContent += `Refunds,₱${(kpis?.refunds || 0).toFixed(2)},\n`;
-    csvContent += `Discounts Total,₱${(kpis?.discount_total || 0).toFixed(2)},\n`;
-    csvContent += `Net Sales,₱${(kpis?.net_sales || 0).toFixed(2)},\n`;
-    csvContent += `Gross Profit,₱${(kpis?.gross_profit || 0).toFixed(2)},Avg ₱${(kpis?.avg_order_value || 0).toFixed(2)} per order\n\n`;
+        // Background color
+        ctx.fillStyle = '#2d2d2d';
+        ctx.fillRect(0, 0, width, height);
 
-    // 3. Trend Section
-    csvContent += `${view === 'day' ? 'HOURLY' : 'DAILY'} REVENUE TREND\n`;
-    csvContent += `Time Period,Gross Sales (₱),Net Sales (₱)\n`;
-    trend.forEach(point => {
-      csvContent += `"${point.label}",${point.gross.toFixed(2)},${point.net.toFixed(2)}\n`;
-    });
-    csvContent += `\n`;
+        ctx.drawImage(image, 0, 0, width, height);
 
-    // 4. Order Log Section
-    csvContent += `DETAILED CUSTOMER ORDER LOG\n`;
-    csvContent += `Order ID,Time,Type,Customer,Discount Type,Gross Amount (₱),Discount Amount (₱),Net Amount (₱),Status\n`;
-    (orders?.data || []).forEach(order => {
-      const timeStr = new Date(order.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' });
-      const typeStr = (order.order_type || '').replace('_', ' ').toUpperCase();
-      const customer = order.customer_name || 'N/A';
-      const discountName = order.discount_name ? `${order.discount_name} (${parseFloat(order.discount_percent || 0).toFixed(0)}%)` : 'None';
-      csvContent += `#${order.id},"${timeStr}",${typeStr},"${customer.replace(/"/g, '""')}","${discountName}",${parseFloat(order.gross_amount || order.total || 0).toFixed(2)},${parseFloat(order.discount_amount || 0).toFixed(2)},${parseFloat(order.net_amount || order.total || 0).toFixed(2)},${order.status.toUpperCase()}\n`;
-    });
-
-    // Create Blob and trigger download
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    const filename = `badabings_analytics_${view}_${view === 'day' ? date : `${year}-${String(month).padStart(2, '0')}`}.csv`;
-    link.setAttribute("download", filename);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success('Analytics exported successfully! 📊');
+        const pngUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `badabings_chart_${view === 'day' ? date : `${year}-${String(month).padStart(2, '0')}`}.png`;
+        link.href = pngUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        DOMURL.revokeObjectURL(url);
+        toast.success('Chart image saved! 📸');
+      };
+      image.src = url;
+    } catch (err) {
+      toast.error('Failed to export chart');
+    }
   };
 
   const kpis = data?.kpis;
