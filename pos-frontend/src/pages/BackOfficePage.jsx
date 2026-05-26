@@ -370,7 +370,22 @@ export default function BackOfficePage() {
     }
 
     try {
-      const svgString = new XMLSerializer().serializeToString(svgElement);
+      const rect = svgElement.getBoundingClientRect();
+      const width = rect.width || svgElement.clientWidth || 800;
+      const height = rect.height || svgElement.clientHeight || 220;
+
+      // Clone the SVG so we can manipulate attributes safely
+      const clonedSvg = svgElement.cloneNode(true);
+      clonedSvg.setAttribute('width', width);
+      clonedSvg.setAttribute('height', height);
+      if (!clonedSvg.getAttribute('viewBox')) {
+        clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      }
+
+      // Inline styles to ensure proper fonts and visual rendering on canvas
+      clonedSvg.style.fontFamily = "'Inter', sans-serif";
+
+      const svgString = new XMLSerializer().serializeToString(clonedSvg);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
       const DOMURL = window.URL || window.webkitURL || window;
       const url = DOMURL.createObjectURL(svgBlob);
@@ -378,16 +393,14 @@ export default function BackOfficePage() {
       const image = new Image();
       image.onload = () => {
         const canvas = document.createElement('canvas');
-        const scale = 2;
-        const width = svgElement.clientWidth || 800;
-        const height = svgElement.clientHeight || 220;
+        const scale = 2; // High-res scale
         
         canvas.width = width * scale;
         canvas.height = height * scale;
         const ctx = canvas.getContext('2d');
         ctx.scale(scale, scale);
 
-        // Background color
+        // Fill dark background matching dashboard theme
         ctx.fillStyle = '#2d2d2d';
         ctx.fillRect(0, 0, width, height);
 
