@@ -48,7 +48,7 @@ function KpiCard({ icon, label, value, sub, color = 'var(--accent)', highlight =
 }
 
 // ── Time Navigation Bar ──────────────────────────────────────────────────────
-function TimeNav({ view, date, month, year, onNavigate, onExport }) {
+function TimeNav({ view, date, month, year, onNavigate }) {
   const goToday = () => {
     const today = new Date();
     if (view === 'day') {
@@ -125,14 +125,6 @@ function TimeNav({ view, date, month, year, onNavigate, onExport }) {
           onClick={goToday}
         >
           Current
-        </button>
-        <button
-          id="save-chart-btn"
-          className="btn btn-secondary"
-          style={{ fontSize: 11, padding: '6px 12px', background: 'rgba(76,175,80,0.08)', color: 'var(--accent)', borderColor: 'var(--border-accent)', fontWeight: 600 }}
-          onClick={onExport}
-        >
-          📸 Save Chart
         </button>
       </div>
     </div>
@@ -401,7 +393,6 @@ export default function BackOfficePage() {
       <TimeNav
         view={view} date={date} month={month} year={year}
         onNavigate={handleNavigate}
-        onExport={handleExport}
       />
 
       {loading && !data ? (
