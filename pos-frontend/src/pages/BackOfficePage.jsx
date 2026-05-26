@@ -376,14 +376,16 @@ export default function BackOfficePage() {
 
       // Clone the SVG so we can manipulate attributes safely
       const clonedSvg = svgElement.cloneNode(true);
+      clonedSvg.removeAttribute('style');
       clonedSvg.setAttribute('width', width);
       clonedSvg.setAttribute('height', height);
+      clonedSvg.style.width = `${width}px`;
+      clonedSvg.style.height = `${height}px`;
+      clonedSvg.style.fontFamily = "'Inter', sans-serif";
+
       if (!clonedSvg.getAttribute('viewBox')) {
         clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
       }
-
-      // Inline styles to ensure proper fonts and visual rendering on canvas
-      clonedSvg.style.fontFamily = "'Inter', sans-serif";
 
       const svgString = new XMLSerializer().serializeToString(clonedSvg);
       const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
