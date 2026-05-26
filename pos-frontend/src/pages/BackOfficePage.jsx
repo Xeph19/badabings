@@ -5,6 +5,7 @@ import {
 } from 'recharts';
 import { getAnalytics, voidOrder } from '../api';
 import toast from 'react-hot-toast';
+import html2canvas from 'html2canvas';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 const peso = (v) => `₱${Number(v || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
@@ -363,65 +364,31 @@ export default function BackOfficePage() {
 
   const handleExport = () => {
     const container = document.querySelector('.chart-card');
-    const svgElement = container ? container.querySelector('svg') : null;
-    if (!svgElement) {
-      toast.error('Chart element not found');
+    if (!container) {
+      toast.error('Chart container not found');
       return;
     }
 
-    try {
-      const rect = svgElement.getBoundingClientRect();
-      const width = rect.width || svgElement.clientWidth || 800;
-      const height = rect.height || svgElement.clientHeight || 220;
+    toast.loading('Preparing download...', { id: 'export-toast', duration: 1500 });
 
-      // Clone the SVG so we can manipulate attributes safely
-      const clonedSvg = svgElement.cloneNode(true);
-      clonedSvg.removeAttribute('style');
-      clonedSvg.setAttribute('width', width);
-      clonedSvg.setAttribute('height', height);
-      clonedSvg.style.width = `${width}px`;
-      clonedSvg.style.height = `${height}px`;
-      clonedSvg.style.fontFamily = "'Inter', sans-serif";
-
-      if (!clonedSvg.getAttribute('viewBox')) {
-        clonedSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-      }
-
-      const svgString = new XMLSerializer().serializeToString(clonedSvg);
-      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
-      const DOMURL = window.URL || window.webkitURL || window;
-      const url = DOMURL.createObjectURL(svgBlob);
-
-      const image = new Image();
-      image.onload = () => {
-        const canvas = document.createElement('canvas');
-        const scale = 2; // High-res scale
-        
-        canvas.width = width * scale;
-        canvas.height = height * scale;
-        const ctx = canvas.getContext('2d');
-        ctx.scale(scale, scale);
-
-        // Fill dark background matching dashboard theme
-        ctx.fillStyle = '#2d2d2d';
-        ctx.fillRect(0, 0, width, height);
-
-        ctx.drawImage(image, 0, 0, width, height);
-
-        const pngUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `badabings_chart_${view === 'day' ? date : `${year}-${String(month).padStart(2, '0')}`}.png`;
-        link.href = pngUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        DOMURL.revokeObjectURL(url);
-        toast.success('Chart image saved! 📸');
-      };
-      image.src = url;
-    } catch (err) {
-      toast.error('Failed to export chart');
-    }
+    html2canvas(container, {
+      backgroundColor: '#2d2d2d',
+      scale: 2,
+      useCORS: true,
+      logging: false
+    }).then(canvas => {
+      const pngUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `badabings_chart_${view === 'day' ? date : `${year}-${String(month).padStart(2, '0')}`}.png`;
+      link.href = pngUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Chart image saved! 📸', { id: 'export-toast' });
+    }).catch(err => {
+      console.error(err);
+      toast.error('Failed to export chart', { id: 'export-toast' });
+    });
   };
 
   const kpis = data?.kpis;
