@@ -18,18 +18,21 @@ const CASHIER_NAV = [
   { key: 'support',  label: 'Support',  icon: '❓' },
 ];
 
-export default function Sidebar({ activePage, onNavigate }) {
+export default function Sidebar({ activePage, onNavigate, isOpen, onClose }) {
   const { user, logout, isAdmin } = useAuth();
   const navItems = isAdmin ? ADMIN_NAV : CASHIER_NAV;
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${isOpen ? ' mobile-open' : ''}`}>
       <div className="sidebar-brand">
-        <div className="store-name">
-          {user?.name}
-          <span className={`role-badge ${isAdmin ? 'role-admin' : 'role-cashier'}`}>
-            {isAdmin ? 'Admin' : 'Cashier'}
-          </span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="store-name">
+            {user?.name}
+            <span className={`role-badge ${isAdmin ? 'role-admin' : 'role-cashier'}`}>
+              {isAdmin ? 'Admin' : 'Cashier'}
+            </span>
+          </div>
+          <button className="sidebar-close-btn" onClick={onClose}>×</button>
         </div>
         <div className="store-sub">POS 1 · Bedabings</div>
       </div>

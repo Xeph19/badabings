@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { OrderProvider } from './context/OrderContext';
+import { OrderProvider, useOrder } from './context/OrderContext';
 import LoginPage from './pages/LoginPage';
 import Sidebar from './components/Layout/Sidebar';
 import SalesPage from './pages/SalesPage';
@@ -63,6 +63,11 @@ const ADMIN_PAGES = ['backoffice', 'items', 'discounts', 'overrides', 'settings'
 function AppContent() {
   const { user, isAdmin } = useAuth();
   const [page, setPage] = useState('sales');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isTicketOpen, setIsTicketOpen] = useState(false);
+  
+  const { items: orderItems, netTotal } = useOrder();
+  const cartCount = orderItems ? orderItems.reduce((acc, item) => acc + item.qty, 0) : 0;
 
   useEffect(() => {
     const handleHash = () => {
@@ -85,6 +90,7 @@ function AppContent() {
     // Cashiers cannot access admin pages
     if (!isAdmin && ADMIN_PAGES.includes(key)) return;
     setPage(key);
+    setIsSidebarOpen(false);
   };
 
   const renderPage = () => {
@@ -105,14 +111,59 @@ function AppContent() {
     }
   };
 
+  const getPageTitle = () => {
+    if (page === 'sales') return 'Bedabings POS';
+    if (page === 'backoffice') return 'Analytics';
+    return page.charAt(0).toUpperCase() + page.slice(1);
+  };
+
   return (
-    <div
-      className="app-shell"
-      style={!showTicket ? { gridTemplateColumns: 'var(--sidebar-width) 1fr' } : {}}
-    >
-      <Sidebar activePage={page} onNavigate={handleNavigate} />
-      {renderPage()}
-      {showTicket && <TicketPane />}
+    <div className={`app-shell${showTicket ? ' has-ticket' : ''}`}>
+      {/* Mobile Top Header */}
+      <header className="mobile-header">
+        <button id="mobile-menu-toggle" className="mobile-header-btn" onClick={() => setIsSidebarOpen(true)}>
+          ☰
+        </button>
+        <span className="mobile-header-title">{getPageTitle()}</span>
+        {showTicket && (
+          <button id="mobile-cart-toggle" className="mobile-header-btn cart-btn" onClick={() => setIsTicketOpen(true)}>
+            🛒
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+          </button>
+        )}
+      </header>
+
+      {/* Sidebar overlay for mobile drawer */}
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)} />
+      )}
+
+      <Sidebar 
+        activePage={page} 
+        onNavigate={handleNavigate} 
+        isOpen={isSidebarOpen} 
+        onClose={() => setIsSidebarOpen(false)} 
+      />
+
+      <main className="main-content-area">
+        {renderPage()}
+      </main>
+
+      {showTicket && (
+        <TicketPane 
+          isOpen={isTicketOpen} 
+          onClose={() => setIsTicketOpen(false)} 
+        />
+      )}
+
+      {/* Mobile Floating Cart Button */}
+      {showTicket && cartCount > 0 && (
+        <button id="mobile-fab-cart" className="floating-cart-fab" onClick={() => setIsTicketOpen(true)}>
+          <span style={{ fontSize: 18 }}>🛒</span>
+          <span style={{ flex: 1, textAlign: 'left', fontWeight: 600 }}>View Ticket ({cartCount})</span>
+          <span style={{ fontWeight: 700 }}>₱{netTotal.toFixed(2)}</span>
+        </button>
+      )}
     </div>
   );
 }

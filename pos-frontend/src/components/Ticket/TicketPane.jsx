@@ -84,7 +84,7 @@ function ChargeModal({ grossTotal, discountAmount, netTotal, appliedDiscount, on
   );
 }
 
-export default function TicketPane() {
+export default function TicketPane({ isOpen, onClose }) {
   const {
     items, orderType, setOrderType,
     updateQty, clearOrder,
@@ -107,6 +107,7 @@ export default function TicketPane() {
       });
       clearOrder();
       setShowCharge(false);
+      if (onClose) onClose(); // Auto-close ticket pane on successful checkout
       toast.success('Order completed! 🎉', { duration: 2000 });
     } catch {
       toast.error('Failed to save order.');
@@ -122,18 +123,26 @@ export default function TicketPane() {
 
   return (
     <>
-      <div className="ticket-pane">
+      {/* Mobile background overlay for ticket drawer */}
+      {isOpen && (
+        <div className="ticket-overlay" onClick={onClose} />
+      )}
+
+      <div className={`ticket-pane${isOpen ? ' mobile-open' : ''}`}>
         {/* Header */}
         <div className="ticket-header">
           <div>
             <div className="ticket-title">Ticket</div>
             <div className="ticket-time">{time}</div>
           </div>
-          {items.length > 0 && (
-            <button id="ticket-clear" className="btn btn-danger btn-icon" onClick={clearOrder} title="Clear order">
-              🗑️
-            </button>
-          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {items.length > 0 && (
+              <button id="ticket-clear" className="btn btn-danger btn-icon" onClick={clearOrder} title="Clear order">
+                🗑️
+              </button>
+            )}
+            <button className="ticket-close-btn" onClick={onClose} title="Close ticket">×</button>
+          </div>
         </div>
 
         {/* Order type */}

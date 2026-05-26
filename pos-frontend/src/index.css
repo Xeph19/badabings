@@ -1033,3 +1033,220 @@ input, select, textarea { font-family: inherit; }
 .items-center  { align-items: center; }
 .gap-2         { gap: 8px; }
 .w-full        { width: 100%; }
+
+/* ── Responsive Shell & Navigation ──────────────────────── */
+.mobile-header {
+  display: none;
+  height: var(--header-height);
+  background: var(--bg-sidebar);
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  flex-shrink: 0;
+}
+
+.mobile-header-btn {
+  font-size: 20px;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+.mobile-header-btn:active {
+  background: var(--border);
+}
+
+.mobile-header-btn.cart-btn {
+  position: relative;
+}
+
+.cart-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 10px;
+  line-height: 1;
+}
+
+.mobile-header-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sidebar-close-btn,
+.ticket-close-btn {
+  display: none;
+  font-size: 24px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+}
+
+.sidebar-close-btn:hover,
+.ticket-close-btn:hover {
+  color: var(--text-primary);
+}
+
+.sidebar-overlay,
+.ticket-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(3px);
+  z-index: 950;
+  animation: fadeIn var(--transition);
+}
+
+.floating-cart-fab {
+  display: none;
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5), 0 0 0 1px var(--border-accent);
+  z-index: 850;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), transform 0.1s ease;
+}
+.floating-cart-fab:active {
+  transform: scale(0.98);
+  background: var(--accent-hover);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Media Queries ──────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .app-shell {
+    display: flex;
+    flex-direction: column;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    height: 100vh;
+  }
+
+  .mobile-header {
+    display: flex;
+  }
+
+  .main-content-area {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Sidebar Drawer */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-width);
+    z-index: 1000;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-lg);
+  }
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  /* Ticket Drawer */
+  .ticket-pane {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: var(--ticket-width);
+    z-index: 1000;
+    transform: translateX(100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+  .ticket-pane.mobile-open {
+    transform: translateX(0);
+  }
+  .ticket-close-btn {
+    display: block;
+  }
+
+  /* Floating Cart FAB */
+  .floating-cart-fab {
+    display: flex;
+  }
+  
+  /* Space out bottom of sales screen so FAB doesn't cover items */
+  .workspace {
+    padding-bottom: 70px;
+    height: calc(100vh - var(--header-height));
+  }
+}
+
+@media (max-width: 768px) {
+  /* KPI layout wraps cleanly */
+  .kpi-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+  }
+  .kpi-formula-bar {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+  .kpi-formula-bar span {
+    width: 100%;
+  }
+  
+  /* Make all tables scrollable horizontally without breaking parent grids */
+  .items-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticket-pane {
+    width: 100vw;
+  }
+  .sidebar {
+    width: 80vw;
+  }
+}

@@ -399,15 +399,15 @@ export default function BackOfficePage() {
               {view === 'day' ? '⏱️ Hourly Revenue Trend' : '📅 Daily Revenue Trend'}
             </div>
             <ResponsiveContainer width="100%" height={220}>
-              <LineChart data={trend} margin={{ top: 4, right: 16, bottom: 0, left: 10 }}>
+              <BarChart data={trend} margin={{ top: 4, right: 16, bottom: 0, left: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
                 <XAxis dataKey="label" tick={{ fill: '#9e9e9e', fontSize: 10 }} />
                 <YAxis tickFormatter={v => pesoShort(v)} tick={{ fill: '#9e9e9e', fontSize: 10 }} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 12, color: '#9e9e9e' }} />
-                <Line type="monotone" dataKey="gross" name="Gross" stroke="#42a5f5" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="net"   name="Net"   stroke="#4caf50" strokeWidth={2} dot={false} />
-              </LineChart>
+                <Bar dataKey="gross" name="Gross" fill="#42a5f5" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="net"   name="Net"   fill="#4caf50" radius={[4, 4, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           </div>
 
