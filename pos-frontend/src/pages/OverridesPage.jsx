@@ -154,50 +154,52 @@ export default function OverridesPage() {
         {loading ? (
           <div className="animate-pulse" style={{ color: 'var(--text-muted)' }}>Loading adjustments...</div>
         ) : (
-          <table className="items-table">
-            <thead>
-              <tr>
-                <th>Target Period</th>
-                <th>Type</th>
-                <th>Adjusted Amount</th>
-                <th>Note</th>
-                <th style={{ width: 80 }}>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {overrides.map(o => (
-                <tr key={o.id} id={`override-row-${o.id}`}>
-                  <td style={{ fontWeight: 600 }}>{fmtDate(o.period_date, o.period_type)}</td>
-                  <td>
-                    <span className={`badge ${o.period_type === 'monthly' ? 'badge-green' : 'badge-orange'}`} style={{ textTransform: 'uppercase', fontSize: 9 }}>
-                      {o.period_type}
-                    </span>
-                  </td>
-                  <td style={{ fontWeight: 700, color: 'var(--accent)' }}>
-                    ₱{parseFloat(o.override_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
-                  </td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{o.note || '—'}</td>
-                  <td>
-                    <button
-                      id={`delete-override-${o.id}`}
-                      className="btn btn-danger btn-icon"
-                      onClick={() => handleDelete(o.id)}
-                      title="Delete override"
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {overrides.length === 0 && (
+          <div style={{ overflowY: 'auto', maxHeight: 'calc(100vh - 180px)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)' }}>
+            <table className="items-table" style={{ border: 'none', borderRadius: 0, margin: 0 }}>
+              <thead>
                 <tr>
-                  <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 40 }}>
-                    No overrides active. Use the form on the left to adjust sales data.
-                  </td>
+                  <th style={{ position: 'sticky', top: 0, zIndex: 1 }}>Target Period</th>
+                  <th style={{ position: 'sticky', top: 0, zIndex: 1 }}>Type</th>
+                  <th style={{ position: 'sticky', top: 0, zIndex: 1 }}>Adjusted Amount</th>
+                  <th style={{ position: 'sticky', top: 0, zIndex: 1 }}>Note</th>
+                  <th style={{ position: 'sticky', top: 0, zIndex: 1, width: 80 }}>Action</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {overrides.map(o => (
+                  <tr key={o.id} id={`override-row-${o.id}`}>
+                    <td style={{ fontWeight: 600 }}>{fmtDate(o.period_date, o.period_type)}</td>
+                    <td>
+                      <span className={`badge ${o.period_type === 'monthly' ? 'badge-green' : 'badge-orange'}`} style={{ textTransform: 'uppercase', fontSize: 9 }}>
+                        {o.period_type}
+                      </span>
+                    </td>
+                    <td style={{ fontWeight: 700, color: 'var(--accent)' }}>
+                      ₱{parseFloat(o.override_amount).toLocaleString('en-PH', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td style={{ color: 'var(--text-secondary)', fontSize: 12 }}>{o.note || '—'}</td>
+                    <td>
+                      <button
+                        id={`delete-override-${o.id}`}
+                        className="btn btn-danger btn-icon"
+                        onClick={() => handleDelete(o.id)}
+                        title="Delete override"
+                      >
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {overrides.length === 0 && (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: 40 }}>
+                      No overrides active. Use the form on the left to adjust sales data.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
     </div>
