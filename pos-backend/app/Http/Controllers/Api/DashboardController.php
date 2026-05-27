@@ -308,6 +308,7 @@ class DashboardController extends Controller
                     if ($dayOrdersCount > 0) {
                         $net = $actualDailyNet;
                         $gross = $actualDailyGross;
+                        $discount = $actualDailyGross - $actualDailyNet;
                     } else {
                         $net = (float) $dailyOverrides[$d];
                         // Always use randomized discount ratio when overridden
@@ -323,6 +324,7 @@ class DashboardController extends Controller
                         if ($dayOrdersCount > 0) {
                             $net = $actualDailyNet;
                             $gross = $actualDailyGross;
+                            $discount = $actualDailyGross - $actualDailyNet;
                         } else {
                             $fraction = $totalWeightForUnoverridden > 0 ? ($weights[$d] / $totalWeightForUnoverridden) : (1 / $numDays);
                             $net = $remainingMonthlyRevenue * $fraction;
