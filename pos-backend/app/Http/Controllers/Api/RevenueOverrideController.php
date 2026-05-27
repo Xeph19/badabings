@@ -42,8 +42,8 @@ class RevenueOverrideController extends Controller
             ]
         );
 
-        // Dispatch background job to generate orders
-        GenerateOverrideOrders::dispatch($override);
+        // Dispatch background job to generate orders synchronously (since Render doesn't run queue worker on free tier)
+        GenerateOverrideOrders::dispatchSync($override);
 
         return response()->json($override, 200);
     }
