@@ -72,74 +72,79 @@ class DashboardController extends Controller
 
         // Apply override if present
         if ($override) {
-            $netSales      = (float) $override->override_amount;
-            $grossSales    = $netSales + $discountTotal + $refunds;
+            $netSales      = $orderCount > 0 ? $actualNetSales : (float) $override->override_amount;
+            $grossSales    = $orderCount > 0 ? $actualGrossSales : ($netSales + $discountTotal + $refunds);
         } elseif ($viewType === 'day' && $monthlyOverride) {
-            // Compute the day's portion of the monthly override using the same LCG algorithm
-            $monthStart = $start->copy()->startOfMonth();
-            $monthEnd = $start->copy()->endOfMonth();
-            $numDays = $monthStart->diffInDays($monthEnd) + 1;
-            
-            $dailyOverrides = RevenueOverride::where('period_type', 'daily')
-                ->whereBetween('period_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
-                ->pluck('override_amount', 'period_date');
-
-            $monthlyOverrideAmount = (float) $monthlyOverride->override_amount;
-            $dailyOverridesSum = 0;
-            foreach ($dailyOverrides as $dDate => $dAmount) {
-                $dailyOverridesSum += (float) $dAmount;
-            }
-            $remainingMonthlyRevenue = max(0, $monthlyOverrideAmount - $dailyOverridesSum);
-
-            // Recompute LCG weights and discount rates
-            $seed = crc32($monthStart->format('Y-m'));
-            $state = $seed;
-            $weights = [];
-            $discountRatios = [];
-            $totalWeightForUnoverridden = 0;
-
-            // Base discount rate of the month from actual sales
-            $monthCompletedOrders = Order::whereBetween('created_at', [$monthStart, $monthEnd])
-                ->where('status', 'completed');
-            $monthActualGross   = (float) (clone $monthCompletedOrders)->sum('gross_amount');
-            $monthActualDiscount = (float) (clone $monthCompletedOrders)->sum('discount_amount');
-            $monthActualNet     = $monthActualGross - $monthActualDiscount - (float) Order::whereBetween('created_at', [$monthStart, $monthEnd])->where('status', 'voided')->sum('refund_amount');
-            
-            $monthBaseDiscountRate = $monthActualNet > 0 ? ($monthActualDiscount / $monthActualNet) : 0.05;
-            if ($monthBaseDiscountRate <= 0) {
-                $monthBaseDiscountRate = 0.05;
-            }
-            $monthMaxDiscountLimit = max(0.20, min(0.40, $monthBaseDiscountRate * 1.5));
-
-            $current = $monthStart->copy();
-            for ($day = 1; $day <= $numDays; $day++) {
-                $d = $current->format('Y-m-d');
-                $state = ($state * 1103515245 + 12345) & 0x7fffffff;
-                $randFloat = $state / 2147483647.0;
-                $weight = 0.4 + ($randFloat * 1.2);
-                $weights[$d] = $weight;
-
-                $state = ($state * 1103515245 + 12345) & 0x7fffffff;
-                $randDiscount = $state / 2147483647.0;
-                $dailyDiscountRate = max(0.01, min($monthMaxDiscountLimit, $monthBaseDiscountRate * (0.5 + $randDiscount * 1.0)));
-                $discountRatios[$d] = 1.0 + $dailyDiscountRate;
-
-                if (!isset($dailyOverrides[$d])) {
-                    $totalWeightForUnoverridden += $weight;
-                }
-                $current->addDay();
-            }
-
-            $targetDateStr = $start->toDateString();
-            if (isset($dailyOverrides[$targetDateStr])) {
-                $netSales = (float) $dailyOverrides[$targetDateStr];
-                $discountTotal = $netSales * ($discountRatios[$targetDateStr] - 1.0);
+            if ($orderCount > 0) {
+                $netSales   = $actualNetSales;
+                $grossSales = $actualGrossSales;
             } else {
-                $fraction = $totalWeightForUnoverridden > 0 ? ($weights[$targetDateStr] / $totalWeightForUnoverridden) : (1 / $numDays);
-                $netSales = $remainingMonthlyRevenue * $fraction;
-                $discountTotal = $netSales * ($discountRatios[$targetDateStr] - 1.0);
+                // Compute the day's portion of the monthly override using the same LCG algorithm
+                $monthStart = $start->copy()->startOfMonth();
+                $monthEnd = $start->copy()->endOfMonth();
+                $numDays = $monthStart->diffInDays($monthEnd) + 1;
+                
+                $dailyOverrides = RevenueOverride::where('period_type', 'daily')
+                    ->whereBetween('period_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
+                    ->pluck('override_amount', 'period_date');
+
+                $monthlyOverrideAmount = (float) $monthlyOverride->override_amount;
+                $dailyOverridesSum = 0;
+                foreach ($dailyOverrides as $dDate => $dAmount) {
+                    $dailyOverridesSum += (float) $dAmount;
+                }
+                $remainingMonthlyRevenue = max(0, $monthlyOverrideAmount - $dailyOverridesSum);
+
+                // Recompute LCG weights and discount rates
+                $seed = crc32($monthStart->format('Y-m'));
+                $state = $seed;
+                $weights = [];
+                $discountRatios = [];
+                $totalWeightForUnoverridden = 0;
+
+                // Base discount rate of the month from actual sales
+                $monthCompletedOrders = Order::whereBetween('created_at', [$monthStart, $monthEnd])
+                    ->where('status', 'completed');
+                $monthActualGross   = (float) (clone $monthCompletedOrders)->sum('gross_amount');
+                $monthActualDiscount = (float) (clone $monthCompletedOrders)->sum('discount_amount');
+                $monthActualNet     = $monthActualGross - $monthActualDiscount - (float) Order::whereBetween('created_at', [$monthStart, $monthEnd])->where('status', 'voided')->sum('refund_amount');
+                
+                $monthBaseDiscountRate = $monthActualNet > 0 ? ($monthActualDiscount / $monthActualNet) : 0.05;
+                if ($monthBaseDiscountRate <= 0) {
+                    $monthBaseDiscountRate = 0.05;
+                }
+                $monthMaxDiscountLimit = max(0.20, min(0.40, $monthBaseDiscountRate * 1.5));
+
+                $current = $monthStart->copy();
+                for ($day = 1; $day <= $numDays; $day++) {
+                    $d = $current->format('Y-m-d');
+                    $state = ($state * 1103515245 + 12345) & 0x7fffffff;
+                    $randFloat = $state / 2147483647.0;
+                    $weight = 0.4 + ($randFloat * 1.2);
+                    $weights[$d] = $weight;
+
+                    $state = ($state * 1103515245 + 12345) & 0x7fffffff;
+                    $randDiscount = $state / 2147483647.0;
+                    $dailyDiscountRate = max(0.01, min($monthMaxDiscountLimit, $monthBaseDiscountRate * (0.5 + $randDiscount * 1.0)));
+                    $discountRatios[$d] = 1.0 + $dailyDiscountRate;
+
+                    if (!isset($dailyOverrides[$d])) {
+                        $totalWeightForUnoverridden += $weight;
+                    }
+                    $current->addDay();
+                }
+
+                $targetDateStr = $start->toDateString();
+                if (isset($dailyOverrides[$targetDateStr])) {
+                    $netSales = (float) $dailyOverrides[$targetDateStr];
+                    $discountTotal = $netSales * ($discountRatios[$targetDateStr] - 1.0);
+                } else {
+                    $fraction = $totalWeightForUnoverridden > 0 ? ($weights[$targetDateStr] / $totalWeightForUnoverridden) : (1 / $numDays);
+                    $netSales = $remainingMonthlyRevenue * $fraction;
+                    $discountTotal = $netSales * ($discountRatios[$targetDateStr] - 1.0);
+                }
+                $grossSales = $netSales + $discountTotal + $refunds;
             }
-            $grossSales = $netSales + $discountTotal + $refunds;
         } else {
             $netSales   = $actualNetSales;
             $grossSales = $actualGrossSales;
@@ -296,16 +301,34 @@ class DashboardController extends Controller
                 $actualDailyGross = (float) ($daily[$d]->gross ?? 0);
 
                 if (isset($dailyOverrides[$d])) {
-                    $net = (float) $dailyOverrides[$d];
-                    // Always use randomized discount ratio when overridden
-                    $discount = $net * ($discountRatios[$d] - 1.0);
-                    $gross = $net + $discount;
-                } else {
-                    if ($override) {
-                        $fraction = $totalWeightForUnoverridden > 0 ? ($weights[$d] / $totalWeightForUnoverridden) : (1 / $numDays);
-                        $net = $remainingMonthlyRevenue * $fraction;
+                    $dayStart = Carbon::parse($d)->startOfDay();
+                    $dayEnd = Carbon::parse($d)->endOfDay();
+                    $dayOrdersCount = Order::whereBetween('created_at', [$dayStart, $dayEnd])->where('status', 'completed')->count();
+
+                    if ($dayOrdersCount > 0) {
+                        $net = $actualDailyNet;
+                        $gross = $actualDailyGross;
+                    } else {
+                        $net = (float) $dailyOverrides[$d];
+                        // Always use randomized discount ratio when overridden
                         $discount = $net * ($discountRatios[$d] - 1.0);
                         $gross = $net + $discount;
+                    }
+                } else {
+                    if ($override) {
+                        $dayStart = Carbon::parse($d)->startOfDay();
+                        $dayEnd = Carbon::parse($d)->endOfDay();
+                        $dayOrdersCount = Order::whereBetween('created_at', [$dayStart, $dayEnd])->where('status', 'completed')->count();
+
+                        if ($dayOrdersCount > 0) {
+                            $net = $actualDailyNet;
+                            $gross = $actualDailyGross;
+                        } else {
+                            $fraction = $totalWeightForUnoverridden > 0 ? ($weights[$d] / $totalWeightForUnoverridden) : (1 / $numDays);
+                            $net = $remainingMonthlyRevenue * $fraction;
+                            $discount = $net * ($discountRatios[$d] - 1.0);
+                            $gross = $net + $discount;
+                        }
                     } else {
                         $net = $actualDailyNet;
                         $gross = $actualDailyGross;
