@@ -34,7 +34,7 @@ export default function Sidebar({ activePage, onNavigate, isOpen, onClose }) {
           </div>
           <button className="sidebar-close-btn" onClick={onClose}>×</button>
         </div>
-        <div className="store-sub">POS 1 · Bedabings</div>
+        <div className="store-sub">POS 1 · badabings</div>
       </div>
 
       <nav className="sidebar-nav">

@@ -38,7 +38,7 @@ function SupportPage() {
       <h1 style={{ fontSize: 18, fontWeight: 700, marginBottom: 16 }}>Support</h1>
       <div style={{ background: 'var(--bg-card)', borderRadius: 12, padding: 20, border: '1px solid var(--border)', maxWidth: 400, color: 'var(--text-secondary)', fontSize: 13 }}>
         <p>For support, contact your system administrator.</p>
-        <p style={{ marginTop: 8 }}>Version: 1.1.0 · Bedabings POS</p>
+        <p style={{ marginTop: 8 }}>Version: 1.1.0 · badabings POS</p>
       </div>
     </div>
   );
@@ -112,7 +112,7 @@ function AppContent() {
   };
 
   const getPageTitle = () => {
-    if (page === 'sales') return 'Bedabings POS';
+    if (page === 'sales') return 'badabings POS';
     if (page === 'backoffice') return 'Analytics';
     return page.charAt(0).toUpperCase() + page.slice(1);
   };

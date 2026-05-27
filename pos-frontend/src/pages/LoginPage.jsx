@@ -19,7 +19,7 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-logo">
           <div className="logo-icon">🍽️</div>
-          <h1>Bedabings POS</h1>
+          <h1>badabings POS</h1>
           <p>Point of Sale System</p>
         </div>
 
