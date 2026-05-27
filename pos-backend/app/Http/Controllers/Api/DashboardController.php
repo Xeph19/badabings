@@ -204,14 +204,15 @@ class DashboardController extends Controller
                 if ($hasOverride) {
                     if ($actualNetSales > 0) {
                         $net = $hourlyNet * $netRatio;
-                    } else {
-                        $net = $netSales / 24;
-                    }
-
-                    if ($actualGrossSales > 0) {
                         $gross = $hourlyGross * $grossRatio;
                     } else {
-                        $gross = $grossSales / 24;
+                        if ($h >= 9 && $h <= 20) {
+                            $net = $netSales / 12;
+                            $gross = $grossSales / 12;
+                        } else {
+                            $net = 0;
+                            $gross = 0;
+                        }
                     }
                 } else {
                     $net = $hourlyNet;
